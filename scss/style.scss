@@ -1,0 +1,436 @@
+@use "sass:math";
+
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:regular,600,700&display=swap'); 
+@import url('https://fonts.googleapis.com/css?family=Manrope:regular,700&display=swap');
+
+
+@import url('https://fonts.googleapis.com/css2?family=Kablammo&family=Source+Code+Pro:wght@400;700&display=swap');
+
+$fontfamily: 'Source Code Pro', monospace;
+
+
+//===========================================================================================================================
+//Percent
+@function percent($px, $from) {
+	$result: math.div($px, $from) * 100%;
+	@return $result;
+}
+//REM
+@function rem($px) {
+	$result: math.div($px, 16) + rem;
+	@return $result;
+}
+//EM
+@function em($px, $current: 16) {
+	$result: math.div($px, $current) + em;
+	@return $result;
+}
+//adaptive value
+@mixin adaptiveValue($property, $startSize, $minSize, $widthFrom: $containerWidth, $widthTo: $minWidth, $keepSize: 0) {
+	@if ($widthFrom == $containerWidth and $maxWidthContainer == 0) {
+		$widthFrom: $maxWidth;
+	}
+	@if ($minSize <= 0) {
+		$minSize: 0.0001;
+	}
+	@if ($startSize <= 0) {
+		$startSize: 0.0001;
+	}
+
+	// Брейк-поинты в EM
+	$widthFromMedia: em($widthFrom);
+	$widthToMedia: em($widthTo);
+
+	// Формула плавающего значения
+	// Источник: https://css-tricks.com/linearly-scale-font-size-with-css-clamp-based-on-the-viewport/
+	$slope: math.div(($startSize - $minSize), ($widthFrom - $widthTo));
+	$yIntersection: -$widthTo * $slope + $minSize;
+	$flyValue: #{rem($yIntersection)}" + " #{$slope * 100}vw;
+
+	// Получение значения свойства
+	$propertyValue: #{"clamp(" rem($minSize) "," $flyValue "," rem($startSize) ")"};
+	// Если отрицательные значения
+	@if ($minSize > $startSize) {
+		$propertyValue: #{"clamp(" rem($startSize) "," $flyValue "," rem($minSize) ")"};
+	}
+
+	@if $widthFrom == $containerWidth or $widthFrom == $maxWidth or $keepSize == 1 or $keepSize == 2 {
+		@media (min-width: $widthFromMedia) {
+			#{$property}: rem($startSize);
+		}
+	}
+	@media (min-width: $widthToMedia) and (max-width: $widthFromMedia) {
+		#{$property}: $propertyValue;
+	}
+	@if $widthTo == $minWidth or $keepSize == 1 or $keepSize == 3 {
+		@media (max-width: $widthToMedia) {
+			#{$property}: rem($minSize);
+		}
+	}
+}
+
+//===========================================================================================================================
+$minWidth: 320;
+// Ширина полотна (макета)
+$maxWidth: 1400;
+// Ширина ограничивающего контейнера (0 = нет ограничения)
+$maxWidthContainer: 1201;
+
+$containerPadding: 30;
+
+// Ширина страбатывания первого брейкпоинта
+$containerWidth: $containerPadding + $maxWidthContainer;
+
+// break-points
+$pc: em($containerWidth); // ПК, ноутбуки, некоторые планшеты в горизонтальном положении
+$tablet: em(991.98); // Планшеты, некоторые телефоны в горизонтальном положении
+$mobile: em(767.98); // Телефоны L
+$mobileSmall: em(479.98); // Телефоны S
+//</variables>
+
+//===========================================================================================================
+.wrapper {
+	min-height: 100%;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	// Прижимаем footer
+	> main {
+		flex: 1 1 auto;
+	}
+	// Фикс для слайдеров
+	> * {
+		min-width: 0;
+	}
+	}
+//===========================================================================================================
+
+
+//<responsive grid>===========================================================================================================
+[class*="__container"] {
+    @if ($maxWidthContainer>0) {
+        max-width: rem($containerWidth);
+        margin: 0 auto;
+    }
+    @if ($containerPadding>0) {
+        @if ($maxWidthContainer>0) {
+            padding: 0 rem(math.div($containerPadding, 2));
+        } 
+    }
+}
+
+/* break points 
+[class*="__container"] {
+	max-width: em($maxWidthContainer);
+	margin: 0 auto;
+	width: 100%;
+
+	@media (max-width: $pc) {
+		max-width: em(970);
+		padding: 0 15px;
+		
+	}
+	@media (max-width: $tablet) {
+		max-width: em(768);
+	
+	}
+	@media (max-width: $mobile) {
+		max-width: none;
+		padding: 0 20px;
+	}
+}
+*/
+//<responsive grid>===========================================================================================================
+
+
+//<null>===========================================================================================================
+* {
+	padding: 0px;
+	margin: 0px;
+	border: 0px;
+
+}
+*,
+*:before,
+*:after {
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+:focus,
+:active {
+	outline: none;
+}
+a:focus,
+a:active {
+	outline: none;
+}
+aside,
+nav,
+footer,
+header,
+section {
+	display: block;
+}
+html,
+body {
+	height: 100%;
+	min-width: $minWidth;
+}
+body {
+	line-height: 1;
+	font-family: $fontfamily;
+	-ms-text-size-adjust: 100%;
+	-moz-text-size-adjust: 100%;
+	-webkit-text-size-adjust: 100%;
+}
+input,
+button,
+textarea {
+	font-family: $fontfamily;
+}
+input::-ms-clear {
+	display: none;
+}
+button {
+	cursor: pointer;
+	color: inherit;
+	font-size: inherit;
+	background-color: inherit;
+}
+button::-moz-focus-inner {
+	padding: 0;
+	border: 0;
+}
+a {
+	color: inherit;
+	transition: 0.4s ease-in;
+}
+a,
+a:visited {
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: none;
+}
+ul li {
+	list-style: none;
+}
+img {
+	vertical-align: top;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-weight: inherit;
+	font-size: inherit;
+}
+
+//===================================================================
+
+.wrapper {
+}
+.wrapper__banner {
+	position: absolute;
+    top: 0;
+    left: 0;
+	
+    width: 100vw;
+    height: 100vh;
+	transition: all 0.4s ease;
+	background-color: rgb(22, 30, 26);
+	&+div{
+		display: none;
+	}
+	&.active{
+		visibility: hidden;
+		top: -100%;
+		&+div{
+			display: block;
+		}
+	}
+}
+.wrapper__img, .wrapper__img-left{
+	position: absolute;
+	width: 450px;
+	height: 500px;
+	max-width: 40%;
+	max-height: 40%;
+	object-fit: cover;
+	border-radius: 4px;
+	border: 2px solid rgb(22, 21, 21);
+	transition: all 0.3s ease;
+
+	&:hover{
+		transform: translate(10px, 10px);
+		border-radius: 15px;
+	}
+	@media (max-width:$mobileSmall){
+		max-width: 200px;
+		max-height: 220px;
+  }
+}
+.wrapper__img-left {
+	top: 50px;
+	left: 15px;
+	@media (max-width:$mobile){
+		 top: 70px;
+	}
+	
+}
+.wrapper__img{
+	right: 15px;
+	bottom: 5px;
+	&:hover{
+		transform: translate(-10px, -10px);
+	}
+}
+.wrapper__title {
+	position: absolute;
+	font-family: 'Kablammo';
+	font-weight: 600;
+	color: rgb(40, 83, 59);
+	font-size: 50px;
+	top: 15px;
+	left: 50%;
+	width: 300px;
+	transform: translate(-150px);
+	text-align: center;
+}
+.wrapper__btn {
+	position: absolute;
+	top: 41%;
+	left: 50%;
+	transform: translateX(-125px);
+	display: block;
+	z-index: 10;
+    border: 2px solid white;
+    padding: 10px 7px;
+    color: white;
+    font-size: 30px;
+    width: 250px;
+	margin: 0 auto;
+    letter-spacing: 1.3px;
+    overflow: hidden;
+    &:before{
+        transition: all 0.3s ease;
+        z-index: -1;
+        content: '';
+        display: block;
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        background-color: rgb(32, 66, 58);
+        height: 100%;
+    }
+    &:hover{
+        &:before{
+            left: 0;
+        }
+    }
+}
+.wrapper__game {
+	background-color: rgb(37, 61, 49);
+	width: 100%;
+	height: 100%;
+	position: relative;
+}
+.game {
+	position: absolute;
+	top: -100%;
+	opacity: 0;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 25px;
+	height: 100%;
+	width: 100%;
+	padding: 10px 15px;
+	transition: all 1s ease;
+	&.active{
+		top: 0;
+		opacity: 1;
+	}
+	&.last{
+		left: -100%;
+		opacity: 0;
+	}
+}
+.game__title {
+	margin-top: 10px;
+	margin-bottom: 15px;
+
+	color: rgb(79, 76, 93);
+	font-family: 'Kablammo';
+	letter-spacing: 1.3px;
+	color: rgb(70, 133, 79);
+	@include adaptiveValue("font-size", 28, 18);
+	
+}
+.game__text {
+	color: rgb(181, 228, 200);
+	line-height: 1.4;
+	@include adaptiveValue("font-size", 23, 18);
+	max-width: 600px;
+	margin: 0 auto;
+	text-align: center;
+}
+.game__img{
+	object-fit: cover;
+	width: 300px;
+	height: 350px;
+	max-width: 90%;
+	border-radius: 10px;
+	border: 4px solid black;
+
+}
+.game__grid {
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
+	@media (min-width:$mobile){
+		  width: 90%;
+	}
+	gap: 10px;
+	margin-bottom: 10px;
+	justify-content: center;
+}
+.game__option {
+	@media (min-width:$mobile){
+		flex: 0 1 40%;
+	}
+	
+	max-width: 90%;
+	
+	display: block;
+	z-index: 10;
+    border: 2px solid rgb(6, 46, 30);
+    padding: 10px 7px;
+    color: white;
+    @include adaptiveValue("font-size", 19, 16);
+   width: 100%;
+   position: relative;
+   overflow: hidden;
+   &:before{
+	transition: all 0.3s ease;
+	z-index: -1;
+	content: '';
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	background-color: rgb(45, 90, 72);
+	height: 100%;
+}
+&:hover{
+	&:before{
+		left: 0;
+	}
+}
+}
